@@ -24,5 +24,6 @@ Add all your TAB-delimited baskets in a text file here (one basket per line) -->
 4. Overview of all phecodes, their categories and general descriptions
 
 ## Notes:
+- This script might require a ton of memory (~20 GB), because it reads and collects a lot of data into memory.
 - This script requires ICD data (ideally the most comprehensive list), `genetic sex` and sex data
 - Only samples where sex == gender are kept, because it's unclear why sex differs from gender (potential sources for mismatch: gender identity, bone marrow transplant, sample swap)
