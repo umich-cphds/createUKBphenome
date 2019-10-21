@@ -8,13 +8,14 @@
 4. Extract all ICD codes from the available fields in your UKB baskets  
 5. Generate a phenome: case control study for each phecode  
 
-Required R libraries:
-data.table
-tidyr
-parallel
-intervals
-
-
+## Required R libraries
+- data.table
+- tidyr
+- parallel
+- intervals
+- XML
+- RCurl
+- rlist
 
 ## Step 1: Describe your data
 Add all your TAB-delimited baskets in a text file here (one basket per line) --> `./data/baskets.txt`, e.g. ukb####.tab
