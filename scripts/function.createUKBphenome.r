@@ -1,5 +1,4 @@
 # Rscript written by Lars Fritsche to extract / reformat UKB data
-
 options(stringsAsFactors=F)
 library(data.table)
 library(tidyr)
@@ -8,17 +7,17 @@ library(parallel)
 ## list all TAB-delimited baskets in text file here (one basket per line): e.g. ukb#####.tab
 baskets <- readLines("./data/baskets.txt")
 
-# speed up things for data.table
+# speed up things for data.table by using multiple threads
 setDTthreads(detectCores()/2)
 
-version <- format(Sys.Date(), format =  "%Y%m%d")
+today <- format(Sys.Date(), format =  "%Y%m%d")
 
 # function to get ranges from list of integers
 source("./scripts/function.getRanges.r")
 source("./scripts/function.expandPhecodes.r")
 source("./scripts/function.simpleCap.r")
 source("./scripts/function.harmonizeICD9.r")
-source("./scripts/function.harmonizeICD10.r")
+# source("./scripts/function.harmonizeICD10.r") 
 
 dir.create("./results")
 
@@ -29,7 +28,7 @@ icd9map <- fread("./data/phecode_icd9_rolled.csv",colClasses="character")
 icd10map <- fread("./data/phecode_icd10.csv",colClasses="character")
 
 # collected phecode information by combining tables from https://github.com/PheWAS/ and the mapping tables
-system("git clone git@github.com:PheWAS/PheWAS.git")
+if(!file.exists("./PheWAS")) system("git clone git@github.com:PheWAS/PheWAS.git")
 
 # Phecode information
 load(file="./PheWAS/data/pheinfo.rda")
@@ -175,9 +174,8 @@ icd10key <- merge(icd10key,pheinfo,by="phecode")
 icd10key <- icd10key[,c("ICD10","meaning","node_id","parent_id","selectable","phecode","description",
 	"group","groupnum","added","sex","rollup","leaf")]
 
-fwrite(icd10key,paste0("./results/icd10key_UKB_",version,".txt"),sep="\t",quote=T)
-fwrite(icd9key,paste0("./results/icd9key_UKB_",version,".txt"),sep="\t",quote=T)
-
+fwrite(icd10key,paste0("./results/UKB_PHENOME_ICD10_PHECODE_MAP_",today,".txt"),sep="\t",quote=T)
+fwrite(icd9key,paste0("./results/UKB_PHENOME_ICD9_PHECODE_MAP_",today,".txt"),sep="\t",quote=T)
 
 ### Create Phenome
 
@@ -223,9 +221,7 @@ for(basket in baskets){
 	}
 }
 
-# Process sex/gender information
-# 0	Female
-# 1	Male
+# Process sex/gender information: Female = 0; Male = 1
 # Only keep samples where sex == gender; unclear why sex might differ from gender (gender identity, bone marrow transplan, sample swap)
 SEXGENDER <- rbindlist(SEXGENDER)
 setnames(SEXGENDER,c("f.31.0.0","f.22001.0.0"),c("Sex","GeneticSex"))
@@ -321,12 +317,15 @@ for(p in 1:nrow(pheinfo2)){
     print(p)
 }
 
+print(paste0("Phenome created and stored in ./results/UKB_PHENOME_*",today,".txt"))
+
+
 
 # summary
-fwrite(pheinfo2,paste0("./results/phenoinfo_",version,".txt"),sep="\t",row.names=F,col.names=T,quote=T)
+fwrite(pheinfo2,paste0("./results/UKB_PHENOME_DESCRIPTION_",today,".txt"),sep="\t",row.names=F,col.names=T,quote=T)
 
 # phenome
-fwrite(phenoOut,paste0("./results/PEDMASTER_",version,".txt"),sep="\t",row.names=F,col.names=T,quote=T)
+fwrite(phenoOut,paste0("./results/UKB_PHENOME_",today,".txt"),sep="\t",row.names=F,col.names=T,quote=T)
 
 # phenome without exclusion criteria (sex filter was applied)
-fwrite(phenoOut0,paste0("./results/PEDMASTER_0_",version,".txt"),sep="\t",row.names=F,col.names=T,quote=T)
+fwrite(phenoOut0,paste0("./results/UKB_PHENOME_NO_EXCLUSIONS_",today,".txt"),sep="\t",row.names=F,col.names=T,quote=T)
