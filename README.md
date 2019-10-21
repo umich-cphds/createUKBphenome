@@ -11,14 +11,18 @@ Tried to reverse engineer the PheWAS R package in a transparent way.
 5. Generate a phenome: case control study for each phecode  
 
 
-## Step 1: 
+## Step 1: Describe your data
 Add all your TAB-delimited baskets in a text file here (one basket per line) --> `./data/baskets.txt`, e.g. ukb####.tab
 
-## Step 2: Run `function.createUKBphenome.r`
+## Step 2: Create Phenome
 `Rscript /net/junglebook/home/larsf/Projects/createUKBphenome/scripts/function.createUKBphenome.r`
 
-## Results
+## Output
 1. Full ICD / PheWAS code tables with descriptions (what's the underlying ICD code for each phecode)
 2. UKB phenome with exclusion criteria applied to controls 
 3. UKB phenome without applying exclusion criteria to controls
 4. Overview of all phecodes, their categories and general descriptions
+
+## Notes:
+- This script requires ICD data (ideally the most comprehensive list), `genetic sex` and sex data
+- Only samples where sex == gender are kept, because it's unclear why sex differs from gender (potential sources for mismatch: gender identity, bone marrow transplant, sample swap)
