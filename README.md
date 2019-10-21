@@ -1,7 +1,6 @@
 # createUKBphenome
 
 ## Basic concepts
-
 1. Collect all ICD code / PheWAS code mapping tables (https://phewascatalog.org/phecodes and https://phewascatalog.org/phecodes_icd10)  
 2. Collect information about PheWAS codes and their inclusion / exclusion filters  
 3. Collect and harmonize all official ICD codes from UKB and map them to phecodes  
@@ -30,6 +29,8 @@ Add all your TAB-delimited baskets in a text file here (one basket per line) -->
 2. UKB phenome with exclusion criteria applied to controls 
 3. UKB phenome without applying exclusion criteria to controls
 4. Overview of all phecodes, their categories and general descriptions
+5. Output of all ICD codes that were NOT mapped to phecodes (incl. sample sizes)
+6. Output of all individuals that had sex-specific diagnose codes that did not match their sex
 
 ## Notes:
 - This script might require a ton of memory (~20 GB), because it reads and collects a lot of data into memory.
