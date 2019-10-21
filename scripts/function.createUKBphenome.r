@@ -1,18 +1,23 @@
 # Rscript written by Lars Fritsche to extract / reformat UKB data
 options(stringsAsFactors=F)
-library(data.table)
-library(tidyr)
-library(parallel)
+suppressPackageStartupMessages(library("data.table",quietly = T))
+suppressPackageStartupMessages(library("tidyr",quietly = T))
+suppressPackageStartupMessages(library("parallel",quietly = T))
+suppressPackageStartupMessages(library("intervals",quietly = T))
+suppressPackageStartupMessages(library("XML",quietly = T))
+suppressPackageStartupMessages(library("RCurl",quietly = T))
+suppressPackageStartupMessages(library("rlist",quietly = T))
+suppressPackageStartupMessages(library("bitops",quietly = T))
 
 ## list all TAB-delimited baskets in text file here (one basket per line): e.g. ukb#####.tab
 baskets <- readLines("./data/baskets.txt")
 
-# speed up things for data.table by using multiple threads
+# speed up things for data.table by using multiple threads (half of all resources)
 setDTthreads(detectCores()/2)
 
 today <- format(Sys.Date(), format =  "%Y%m%d")
 
-# function to get ranges from list of integers
+# Some additional functions
 source("./scripts/function.getRanges.r")
 source("./scripts/function.expandPhecodes.r")
 source("./scripts/function.simpleCap.r")
@@ -214,6 +219,7 @@ fieldids10 <- fields[grepl("ICD10",Description) & !grepl("addendum|date",Descrip
 ICD9 <- ICD10 <- SEXGENDER <-  list()
 
 for(basket in baskets){
+	print(paste("Reading basket",basename(basket)))
 	ukb_data_columns <- scan(basket,what=character(0),sep="\t",nlines=1,quiet=T)
 
 	extractICD9columns <- grep(paste("^f\\.",fieldids9,"\\.",sep="",collapse="|"),ukb_data_columns)
@@ -238,7 +244,6 @@ for(basket in baskets){
 	if(length(extractSexGenderColumns) == 2) {
 		SexGenderColumns <- getRanges(c(1,extractSexGenderColumns))
 		SEXGENDER[[basket]]  <- fread(cmd=paste("cut -f",SexGenderColumns,basket),header=T)
-		gc()
 	}
 }
 
@@ -308,6 +313,7 @@ maleTF <- sampleNames %in% males
 
 print("Creating case control studies")
 # create case control studies, one phecode at a time
+pb = txtProgressBar(min = 0, max = nrow(pheinfo2), initial = 0, style = 3) 
 for(p in 1:nrow(pheinfo2)){
     phecode_remove <- ""
 	phecode <- pheinfo2$phecode[p]
@@ -354,10 +360,11 @@ for(p in 1:nrow(pheinfo2)){
     # get sample sizes
     pheinfo2$ncontrols[p] <- length(which(ccstatus == 0))
     pheinfo2$ncases[p] <- length(which(ccstatus == 1))
-    print(p)
+    setTxtProgressBar(pb,p)
 }
 
-# summary
+print("Write output:")
+# summary table
 fwrite(pheinfo2,paste0("./results/UKB_PHENOME_DESCRIPTION_",today,".txt"),sep="\t",row.names=F,col.names=T,quote=T)
 
 # phenome
@@ -365,5 +372,23 @@ fwrite(phenoOut,paste0("./results/UKB_PHENOME_",today,".txt"),sep="\t",row.names
 
 # phenome without exclusion criteria (sex filter was applied)
 fwrite(phenoOut0,paste0("./results/UKB_PHENOME_NO_EXCLUSIONS_",today,".txt"),sep="\t",row.names=F,col.names=T,quote=T)
+
+# Output individuals with diagnoses that don't match their sex
+write(notMale,paste0("./results/UKB_PHENOME_FEMALES_WITH_MALE-SPECIFIC_DISAGNOSES_",today,".txt"))
+write(notFemale,paste0("./results/UKB_PHENOME_MALES_WITH_FEMALE-SPECIFIC_DISAGNOSES_",today,".txt"))
+
+# Output unmapped ICD9 codes
+ICD9_U <- ICD9[ICD9 %in% icd9unmapped,]
+ICD9_U <- data.table(table(ICD9_U$ICD9))
+colnames(ICD9_U) <- c("ICD9","N")
+ICD9_U <- merge(ICD9_U,ICD9codes,by="ICD9")[order(N,decreasing=T),]
+fwrite(ICD9_U,paste0("./results/UKB_PHENOME_UNMAPPED_ICD9_CODES_",today,".txt"),sep="\t",row.names=F,col.names=T,quote=T)
+
+# Output unmapped ICD10 codes
+ICD10_U <- ICD10[ICD10 %in% icd10unmapped,]
+ICD10_U <- data.table(table(ICD10_U$ICD10))
+colnames(ICD10_U) <- c("ICD10","N")
+ICD10_U <- merge(ICD10_U,ICD10codes,by="ICD10")[order(N,decreasing=T),]
+fwrite(ICD10_U,paste0("./results/UKB_PHENOME_UNMAPPED_ICD10_CODES_",today,".txt"),sep="\t",row.names=F,col.names=T,quote=T)
 
 print(paste0("Phenome created and stored in ./results/UKB_PHENOME_*",today,".txt"))
