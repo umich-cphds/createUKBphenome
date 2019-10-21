@@ -22,6 +22,7 @@
 Add all your TAB-delimited baskets in a text file here (one basket per line) --> `./data/baskets.txt`, e.g. ukb####.tab
 
 ## Step 2: Create Phenome
+`cd createUKBphenome`  
 `Rscript ./scripts/function.createUKBphenome.r`
 
 ## Output
