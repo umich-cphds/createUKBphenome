@@ -16,6 +16,7 @@
 - XML
 - RCurl
 - rlist
+- bitops
 
 ## Step 1: Describe your data
 Add all your TAB-delimited baskets in a text file here (one basket per line) --> `./data/baskets.txt`, e.g. ukb####.tab
