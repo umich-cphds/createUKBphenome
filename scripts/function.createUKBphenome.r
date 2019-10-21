@@ -304,8 +304,8 @@ phenoOut <- phenoOut0 <- data.table('IID'=sampleNames,matrix(NA,ncol=length(phec
 colnames(phenoOut) <- c("IID",paste0("X",phecodes))
 
 # collect cases with potentially wrong sex
-notFemale <- character(0)
-notMale <- character(0)
+notFemale <- list()
+notMale <- list()
 
 # TRUE FALSE variable for sex
 femaleTF <- sampleNames %in% females 
@@ -346,13 +346,15 @@ for(p in 1:nrow(pheinfo2)){
         ccstatus[controls & femaleTF] <- 0
         ccstatus[cases & femaleTF] <- ccstatus0[cases & femaleTF] <- 1
         ccstatus0[!cases & femaleTF] <- 0
-        notFemale <- unique(c(notFemale,sampleNames[cases & !femaleTF]))
+        checkFemales <- sampleNames[cases & !femaleTF]
+        if(length(checkFemales) > 0) notFemale[[phecode]] <- data.table('IID'=checkFemales,phecode)
     } else if (pheinfo2$sex[p] == "Male"){
 	    # male-specific traits
         ccstatus[controls & maleTF] <- 0
         ccstatus[cases & maleTF] <- ccstatus0[cases & maleTF] <- 1
         ccstatus0[!cases & maleTF] <- 0
-        notMale <- unique(c(notMale,sampleNames[cases & !maleTF]))
+        checkMales <- sampleNames[cases & !maleTF]
+        if(length(checkMales) > 0) notMale[[phecode]] <- data.table('IID'=checkMales,phecode)
     }
 	phenoOut[[paste0("X",phecode)]] <- ccstatus
 	phenoOut0[[paste0("X",phecode)]] <- ccstatus0
@@ -374,8 +376,17 @@ fwrite(phenoOut,paste0("./results/UKB_PHENOME_",today,".txt"),sep="\t",row.names
 fwrite(phenoOut0,paste0("./results/UKB_PHENOME_NO_EXCLUSIONS_",today,".txt"),sep="\t",row.names=F,col.names=T,quote=T)
 
 # Output individuals with diagnoses that don't match their sex
-write(notMale,paste0("./results/UKB_PHENOME_FEMALES_WITH_MALE-SPECIFIC_DISAGNOSES_",today,".txt"))
-write(notFemale,paste0("./results/UKB_PHENOME_MALES_WITH_FEMALE-SPECIFIC_DISAGNOSES_",today,".txt"))
+notFemale <- rbindlist(notFemale)
+notFemale <- merge(notFemale,pheinfo[,.(phecode,description)],by="phecode")
+notFemale[,Sex:="Male"]
+
+notMale <- rbindlist(notMale)
+notMale <- merge(notMale,pheinfo[,.(phecode,description)],by="phecode")
+notMale[,Sex:="Female"]
+
+sexIssues <- rbind(notFemale,notMale)
+sexIssues <- sexIssues[order(IID,phecode),]
+fwrite(sexIssues,paste0("./results/UKB_PHENOME_SEXMISMATCH_SEX-SPECIFIC_DISAGNOSES_",today,".txt"),sep="\t",row.names=F,col.names=T,quote=T)
 
 # Output unmapped ICD9 codes
 ICD9_U <- ICD9[ICD9 %in% icd9unmapped,]
