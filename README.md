@@ -31,5 +31,5 @@ Add all your TAB-delimited baskets in a text file here (one basket per line) -->
 
 ## Notes:
 - This script might require a ton of memory (~20 GB), because it reads and collects a lot of data into memory.
-- This script requires ICD data (ideally the most comprehensive list), `genetic sex` and sex data
-- Only samples where sex == gender are kept, because it's unclear why sex differs from gender (potential sources for mismatch: gender identity, bone marrow transplant, sample swap)
+- This script requires ICD data of the UK Biobank (ideally the most comprehensive list), `Genetic Sex` and `Sex`
+- Only samples with `Genetic Sex` equals `Sex` are kept, because it's unclear why it should be different (potential sources for mismatch: gender identity, bone marrow transplant, sample swap)
