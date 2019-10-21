@@ -17,7 +17,7 @@ source("./scripts/function.getRanges.r")
 source("./scripts/function.expandPhecodes.r")
 source("./scripts/function.simpleCap.r")
 source("./scripts/function.harmonizeICD9.r")
-# source("./scripts/function.harmonizeICD10.r") 
+# source("./scripts/function.harmonizeICD10.r")
 
 dir.create("./results")
 
@@ -70,7 +70,7 @@ mappedICD9Codes <- NULL
 icd9map_new <- list()
 for(i in 1:nrow(icd9map)){
 	mapped9 <- grep(icd9map$ICD9[i],codeICD9)
-	if(length(mapped9) > 0) {	
+	if(length(mapped9) > 0) {
 		mappedICD9Codes <- unique(c(mappedICD9Codes,codeICD9[mapped9]))
 		icd9map_new[[icd9map$ICD9[i]]] <- data.table(
 			'phecode'=icd9map$PheCode[i],
@@ -91,17 +91,17 @@ for(p in 1:length(pcodes)){
         				& nchar(pcodes) > nchar(pcodes[p]))]
         				& !icd9key$phecode %in% norollup)
     } else {
-        iSub <- which(icd9key$phecode %in% pcodes[grep(paste0("^",pcodes[p],"\\."),pcodes)] 
+        iSub <- which(icd9key$phecode %in% pcodes[grep(paste0("^",pcodes[p],"\\."),pcodes)]
         				& !icd9key$phecode %in% norollup)
     }
     if(length(iSub) == 0) next
     iTop <- icd9key$ICD9[which(icd9key$phecode == pcodes[p])]
     addTop <- which(icd9key$ICD9 %in% unique(icd9key$ICD9[iSub]) & ! icd9key$ICD9 %in% iTop)
     if(length(addTop) == 0) next
-    
+
     addKey <- icd9key[addTop,]
     addKey$phecode <- pcodes[p]
-    addKey$added <- "rolled up PheWAS code"        
+    addKey$added <- "rolled up PheWAS code"
     icd9key <- rbind(icd9key,addKey)
 }
 
@@ -130,7 +130,7 @@ mappedICD10Codes <- NULL
 icd10map_new <- list()
 for(i in 1:nrow(icd10map)){
 	mapped10 <- grep(icd10map$ICD10[i],codeICD10)
-	if(length(mapped10) > 0) {	
+	if(length(mapped10) > 0) {
 		mappedICD10Codes <- unique(c(mappedICD10Codes,codeICD10[mapped10]))
 		icd10map_new[[icd10map$ICD10[i]]] <- data.table(
 			'phecode'=icd10map$PheCode[i],
@@ -150,17 +150,17 @@ for(p in 1:length(pcodes)){
         				& nchar(pcodes) > nchar(pcodes[p]))]
         				& !icd10key$phecode %in% norollup)
     } else {
-        iSub <- which(icd10key$phecode %in% pcodes[grep(paste0("^",pcodes[p],"\\."),pcodes)] 
+        iSub <- which(icd10key$phecode %in% pcodes[grep(paste0("^",pcodes[p],"\\."),pcodes)]
         				& !icd10key$phecode %in% norollup)
     }
     if(length(iSub) == 0) next
     iTop <- icd10key$ICD10[which(icd10key$phecode == pcodes[p])]
     addTop <- which(icd10key$ICD10 %in% unique(icd10key$ICD10[iSub]) & ! icd10key$ICD10 %in% iTop)
     if(length(addTop) == 0) next
-    
+
     addKey <- icd10key[addTop,]
     addKey$phecode <- pcodes[p]
-    addKey$added <- "rolled up PheWAS code"        
+    addKey$added <- "rolled up PheWAS code"
     icd10key <- rbind(icd10key,addKey)
 }
 
@@ -174,6 +174,8 @@ icd10key <- merge(icd10key,pheinfo,by="phecode")
 icd10key <- icd10key[,c("ICD10","meaning","node_id","parent_id","selectable","phecode","description",
 	"group","groupnum","added","sex","rollup","leaf")]
 
+print(paste0("Mapping tables created and stored in ./results/UKB_PHENOME_ICD*_PHECODE_MAP_",today,".txt"))
+
 fwrite(icd10key,paste0("./results/UKB_PHENOME_ICD10_PHECODE_MAP_",today,".txt"),sep="\t",quote=T)
 fwrite(icd9key,paste0("./results/UKB_PHENOME_ICD9_PHECODE_MAP_",today,".txt"),sep="\t",quote=T)
 
@@ -186,7 +188,7 @@ field.file <- "./data/FieldListing.txt"
 # load all baskets:
 names(baskets) <- basename(baskets)
 
-# get all field ids 
+# get all field ids
 fields <- fread(field.file)
 
 # ICD fields without addendums or dates
@@ -199,7 +201,7 @@ ICD9 <- ICD10 <- SEXGENDER <-  list()
 
 for(basket in baskets){
 	ukb_data_columns <- scan(basket,what=character(0),sep="\t",nlines=1,quiet=T)
-	
+
 	extractICD9columns <- grep(paste("^f\\.",fieldids9,"\\.",sep="",collapse="|"),ukb_data_columns)
 	if(length(extractICD9columns) > 0) {
 		ICD9columns <- getRanges(c(1,extractICD9columns))
@@ -286,31 +288,31 @@ for(p in 1:nrow(pheinfo2)){
     if(pheinfo2$phecode_exclude_range[p] != ""){
         phecode_remove <- unlist(strsplit(gsub(" ","",pheinfo2$phecode_exclude_range[p]),",")[[1]])
         exclude_phecodes <- c(exclude_phecodes,unlist(sapply(phecode_remove,function(x) expandPhecodes(x,T),USE.NAMES=F)))
-    } 
+    }
     exclude_phecodes <- unique(exclude_phecodes[which(exclude_phecodes %in% pheinfo2$phecode)])
-    
+
     # non-sex specific traits
     if(pheinfo2$sex[p] == "Both"){
         phenoOut[which(!sampleNames %in% unique(unlist(exclusions[exclude_phecodes]))),p+1] <- 0
         phenoOut[which(sampleNames %in% unlist(inclusions[pheinfo2$phecode[p]])),p+1] <- 1
         phenoOut0[which(!sampleNames %in% unlist(inclusions[pheinfo2$phecode[p]])),p+1] <- 0
-        phenoOut0[which(sampleNames %in% unlist(inclusions[pheinfo2$phecode[p]])),p+1] <- 1        
+        phenoOut0[which(sampleNames %in% unlist(inclusions[pheinfo2$phecode[p]])),p+1] <- 1
     } else if (pheinfo2$sex[p] == "Female"){
 	    # female-specific traits
-        phenoOut[which(!sampleNames %in% unique(unlist(exclusions[exclude_phecodes])) & sampleNames %in% females),p+1] <- 0    
+        phenoOut[which(!sampleNames %in% unique(unlist(exclusions[exclude_phecodes])) & sampleNames %in% females),p+1] <- 0
         phenoOut[which(sampleNames %in% unlist(inclusions[pheinfo2$phecode[p]]) & sampleNames %in% females),p+1] <- 1
-        phenoOut0[which(!sampleNames %in% unlist(inclusions[pheinfo2$phecode[p]]) & sampleNames %in% females),p+1] <- 0    
+        phenoOut0[which(!sampleNames %in% unlist(inclusions[pheinfo2$phecode[p]]) & sampleNames %in% females),p+1] <- 0
         phenoOut0[which(sampleNames %in% unlist(inclusions[pheinfo2$phecode[p]]) & sampleNames %in% females),p+1] <- 1
-        notFemale <- unique(c(notFemale,sampleNames[which(sampleNames %in% unlist(inclusions[pheinfo2$phecode[p]]) & !sampleNames %in% females)]))    
+        notFemale <- unique(c(notFemale,sampleNames[which(sampleNames %in% unlist(inclusions[pheinfo2$phecode[p]]) & !sampleNames %in% females)]))
     } else if (pheinfo2$sex[p] == "Male"){
 	    # male-specific traits
-        phenoOut[which(!sampleNames %in% unique(unlist(exclusions[exclude_phecodes])) & sampleNames %in% males),p+1] <- 0    
+        phenoOut[which(!sampleNames %in% unique(unlist(exclusions[exclude_phecodes])) & sampleNames %in% males),p+1] <- 0
         phenoOut[which(sampleNames %in% unlist(inclusions[pheinfo2$phecode[p]]) & sampleNames %in% males),p+1] <- 1
-        phenoOut0[which(!sampleNames %in% unlist(inclusions[pheinfo2$phecode[p]]) & sampleNames %in% males),p+1] <- 0    
+        phenoOut0[which(!sampleNames %in% unlist(inclusions[pheinfo2$phecode[p]]) & sampleNames %in% males),p+1] <- 0
         phenoOut0[which(sampleNames %in% unlist(inclusions[pheinfo2$phecode[p]]) & sampleNames %in% males),p+1] <- 1
         notMale <- unique(c(notMale,sampleNames[which(sampleNames %in% unlist(inclusions[pheinfo2$phecode[p]]) & !sampleNames %in% males)]))
     }
-    
+
     # get sample sizes
     pheinfo2$ncontrols[p] <- length(which(phenoOut[,p+1] == 0))
     pheinfo2$ncases[p] <- length(which(phenoOut[,p+1] == 1))
@@ -318,8 +320,6 @@ for(p in 1:nrow(pheinfo2)){
 }
 
 print(paste0("Phenome created and stored in ./results/UKB_PHENOME_*",today,".txt"))
-
-
 
 # summary
 fwrite(pheinfo2,paste0("./results/UKB_PHENOME_DESCRIPTION_",today,".txt"),sep="\t",row.names=F,col.names=T,quote=T)
