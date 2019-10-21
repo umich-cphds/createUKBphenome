@@ -18,7 +18,7 @@
 - bitops
 
 ## Step 1: Describe your data
-Add all your TAB-delimited baskets in a text file here (one basket per line) --> `./data/baskets.txt`, e.g. ukb####.tab
+Add the absolute paths (e.g. `/driveA/UKB/ukb####.tab`) of your TAB-delimited UKB baskets to a single text file `./data/baskets.txt`
 
 ## Step 2: Create Phenome
 `cd createUKBphenome`  
