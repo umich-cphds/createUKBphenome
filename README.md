@@ -1,11 +1,11 @@
 # createUKBphenome
 
 ## Basic concepts
-1. Collect all ICD code / PheWAS code mapping tables (https://phewascatalog.org/phecodes and https://phewascatalog.org/phecodes_icd10)  
-2. Collect information about PheWAS codes and their inclusion / exclusion filters  
-3. Collect and harmonize all official ICD codes from UKB and map them to phecodes  
-4. Extract all ICD codes from the available fields in your UKB baskets  
-5. Generate a phenome: case control study for each phecode  
+1. ICD code / PheWAS code mapping from phewascatalog (https://phewascatalog.org/phecodes and https://phewascatalog.org/phecodes_icd10)  
+2. Collection of information about PheWAS codes and their inclusion / exclusion filters  
+3. Collection and harmonization of ICD codes from UKB
+4. Extraction of all ICD codes from the available fields in your UKB baskets  
+5. Generatation of a phenome: case control study for each phecode
 
 ## Required R libraries
 - data.table
@@ -33,6 +33,6 @@ Add all your TAB-delimited baskets in a text file here (one basket per line) -->
 6. Output of all individuals that had sex-specific diagnose codes that did not match their sex
 
 ## Notes:
-- This script might require a ton of memory (~20 GB), because it reads and collects a lot of data into memory.
+- This script requires a ton of memory (~20-30 GB), because it reads and collects a lot of data into memory.
 - This script requires ICD data of the UK Biobank (ideally the most comprehensive list), `Genetic Sex` and `Sex`
 - Only samples with `Genetic Sex` equals `Sex` are kept, because it's unclear why it should be different (potential sources for mismatch: gender identity, bone marrow transplant, sample swap)
