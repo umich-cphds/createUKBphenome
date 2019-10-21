@@ -1,6 +1,4 @@
 # createUKBphenome
-Rscript that will create a PheWAS code based phenome using ICD9 and ICD10 data from baskets of the UK biobank (http://biobank.ndph.ox.ac.uk/showcase/).  
-It uses the PheWAS R package (https://github.com/PheWAS/PheWAS) and its underlying mapping tables in a hopefully transparent way.
 
 ## Basic concepts
 
