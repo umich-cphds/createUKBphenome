@@ -15,7 +15,7 @@ It uses the PheWAS R package (https://github.com/PheWAS/PheWAS) and its underlyi
 Add all your TAB-delimited baskets in a text file here (one basket per line) --> `./data/baskets.txt`, e.g. ukb####.tab
 
 ## Step 2: Create Phenome
-`Rscript /net/junglebook/home/larsf/Projects/createUKBphenome/scripts/function.createUKBphenome.r`
+`Rscript ./scripts/function.createUKBphenome.r`
 
 ## Output
 1. Full ICD / PheWAS code tables with descriptions (what's the underlying ICD code for each phecode)
