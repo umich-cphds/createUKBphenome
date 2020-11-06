@@ -1,8 +1,6 @@
 options(stringsAsFactors=F)
 library("data.table",quietly=T)
-library("XML")
-library("RCurl")
-library("rlist")
+library("htmltab")
 
 datatype <- c('Integer',
 	'Categorical (single)',
@@ -21,16 +19,8 @@ vt <- c("11","21","22","31","41","51","61","101")
 all.tables <- list()
 
 for(i in 1:length(vt)){
-	tables <- readHTMLTable(paste0("http://biobank.ndph.ox.ac.uk/showcase/list.cgi?it=0&vt=",vt[i]))
-	tables <- list.clean(tables, fun = is.null, recursive = FALSE)
-	tableX <- tables[[1]]
-	if(ncol(tableX) == 4){
-		tableX <- tableX[,-4]
-		colnames(tableX)[1:3] <- c("Field ID","Description","Category")
-	}
-	for(j in 1:3){
-		tableX[[j]] <- gsub("[  ]+$|^[  ]+","",tableX[[j]])
-	}
+	table_url <- paste0("https://biobank.ndph.ox.ac.uk/showcase/list.cgi?it=0&vt=",vt[i])
+	tableX <- data.table(htmltab(doc = table_url,which=1))
 	tableX$datatype <- datatype[i]
 	all.tables[[i]] <- tableX
 }
