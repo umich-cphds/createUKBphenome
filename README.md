@@ -12,9 +12,7 @@
 - tidyr
 - parallel
 - intervals
-- XML
-- RCurl
-- rlist
+- htmltab
 - bitops
 
 ## Step 1: Describe your data
