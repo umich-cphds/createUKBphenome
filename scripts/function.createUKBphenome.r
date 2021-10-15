@@ -12,6 +12,16 @@ suppressPackageStartupMessages(library("bitops",quietly = T))
 ## list all TAB-delimited baskets in text file here (one basket per line): e.g. ukb#####.tab
 baskets <- readLines("./data/baskets.txt")
 
+## list all TAB-delimited baskets in text file here (one basket per line): e.g. ukb#####.tab
+file.baskets <- "./data/baskets.txt"
+if(!file.exists(file.baskets)) stop("Please add file 'baskets.txt' with basket locations to './data/' folder'!")
+baskets <- readLines(file.baskets)
+
+## List of people who withdrew
+file.withdrawn <- sort(list.files("./data","w[0-9]+_.[0-9]+.csv",full.name=T),decreasing=T)[1]
+if(!file.exists(file.withdrawn)) stop("Please add file with withdrawn samples 'w***_***.csv' to './data/' folder'!")
+withdrawn <- readLines(file.withdrawn)
+
 # speed up things for data.table by using multiple threads (half of all resources)
 setDTthreads(detectCores()/2)
 
