@@ -61,13 +61,13 @@ reformatUKB <- function(fields,dataCoding=F,onlyInfo=F){
 	selected_columns <- c("id",unique(unlist(strsplit(allfields,","))))	
  	print(paste("Reading all entries across",length(selected_columns),"columns"))
 
-	colnumbers <- which(ukb_data_columns %in% gsub("\\.","-",gsub("^f\\.","",selected_columns)))
+	colnumbers <- which(ukb_data_columns %in% selected_columns)
 	
 	reformatted <- fread(cmd=paste("cut -f",getRanges(colnumbers),data.file),header=T,
 		colClasses="character")
 	
-	fieldpattern <- "(.+)\\-.+\\-.+"
-	entrypattern <- ".+\\-(.+\\-.+)"
+	fieldpattern <- "f\\.(.+)\\..+\\..+"
+	entrypattern <- "f\\..+\\.(.+\\..+)"
 
 	keep <- which(rowSums(is.na(reformatted[,-1]) | reformatted[,-1] == "",na.rm = T) != ncol(reformatted[,-1]))
 	
