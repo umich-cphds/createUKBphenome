@@ -17,6 +17,7 @@
 
 ## Step 1: Describe your data
 Add the absolute paths (e.g. `/driveA/UKB/ukb####.tab`) of your TAB-delimited UKB baskets to a single text file `./data/baskets.txt`
+Add the latest file with withdrawn samples 'w#####_########.csv' to './data/' folder
 
 ## Step 2: Create Phenome
 `cd createUKBphenome`  
