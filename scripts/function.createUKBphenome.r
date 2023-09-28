@@ -71,7 +71,7 @@ pheinfo2 <- unique(fread("./data/phecode_icd9_rolled.csv",colClasses="character"
 
 # create one data.table with all criteria
 pheinfo <- merge(pheinfo,pheinfo2,by="phecode")
-pheinfo <- merge(pheinfo,gender_restriction,by="phecode")
+pheinfo <- merge(pheinfo,sex_restriction,by="phecode")
 pheinfo <- pheinfo[,c("phecode","description","sex","rollup","leaf","groupnum","group","color","phecode_exclude_range","phecode_exclude_phenotypes")]
 
 # add phecode information that's missing (collected form earlier versions)
