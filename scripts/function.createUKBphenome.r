@@ -18,7 +18,7 @@ if(!file.exists(file.baskets)) stop("Please add file 'baskets.txt' with basket l
 baskets <- readLines(file.baskets)
 
 ## List of people who withdrew
-file.withdrawn <- sort(list.files("./data","w[0-9]+_.[0-9]+.csv",full.name=T),decreasing=T)[1]
+file.withdrawn <- sort(list.files("./data","w[0-9]+_.[0-9\\-]+.csv",full.name=T),decreasing=T)[1]
 if(!file.exists(file.withdrawn)) stop("Please add file with withdrawn samples 'w***_***.csv' to './data/' folder'!")
 withdrawn <- readLines(file.withdrawn)
 
