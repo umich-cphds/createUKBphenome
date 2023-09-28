@@ -22,6 +22,12 @@ file.withdrawn <- sort(list.files("./data","w[0-9]+_.[0-9]+.csv",full.name=T),de
 if(!file.exists(file.withdrawn)) stop("Please add file with withdrawn samples 'w***_***.csv' to './data/' folder'!")
 withdrawn <- readLines(file.withdrawn)
 
+## Fam file with genetic sex
+file.fam <- sort(list.files("./data","ukb.+_cal_chr1_v.+\\.fam$",full.name=T),decreasing=T)[1]
+if(!file.exists(file.fam)) stop("Please add FAM file from genotype data '***.fam' to './data/' folder'!")
+fam <- fread(file.fam, select = c(1,5), header = FALSE)
+sex <- fam[,.(f.eid = V1, Sex = 2 - V5 ) ]
+
 # speed up things for data.table by using multiple threads (half of all resources)
 setDTthreads(detectCores()/2)
 
@@ -50,13 +56,13 @@ load(file="./PheWAS/data/pheinfo.rda")
 pheinfo <- data.table(pheinfo)
 pheinfo <- pheinfo[,.(phecode,description,groupnum,group,color)]
 
-# Gender rules
-load(file="./PheWAS/data/gender_restriction.rda")
-gender_restriction <- data.table(gender_restriction)
-gender_restriction <- rbind(
-	data.table('phecode'=gender_restriction[male_only == F & female_only == F,phecode],'sex'="Both"),
-	data.table('phecode'=gender_restriction[male_only == T,phecode],'sex'="Male"),
-	data.table('phecode'=gender_restriction[female_only == T,phecode],'sex'="Female"))
+# Sex rules
+load(file="./PheWAS/data/sex_restriction.RData")
+sex_restriction <- data.table(sex_restriction)
+sex_restriction <- rbind(
+	data.table('phecode'=sex_restriction[male_only == F & female_only == F,phecode],'sex'="Both"),
+	data.table('phecode'=sex_restriction[male_only == T,phecode],'sex'="Male"),
+	data.table('phecode'=sex_restriction[female_only == T,phecode],'sex'="Female"))
 
 # Exclusion / roll up rules
 pheinfo2 <- unique(fread("./data/phecode_icd9_rolled.csv",colClasses="character",
@@ -225,8 +231,8 @@ fieldids9 <- fields[grepl("ICD9",Description) & !grepl("addendum|date",Descripti
 fieldids10 <- fields[grepl("ICD10",Description) & !grepl("addendum|date",Description,ignore.case=T),`Field ID`]
 
 # Collapse ICD9 and ICD10 separately
-# Also collect genetic sex and self-reported gender:
-ICD9 <- ICD10 <- SEXGENDER <-  list()
+# Also collect self-reported gender:
+ICD9 <- ICD10 <- GENDER <-  list()
 
 for(basket in baskets){
 	print(paste("Reading basket",basename(basket)))
@@ -250,19 +256,18 @@ for(basket in baskets){
 		gc()
 	}
 
-	extractSexGenderColumns <- grep(paste("^f\\.",c("31","22001"),"\\.",sep="",collapse="|"),ukb_data_columns)
-	if(length(extractSexGenderColumns) == 2) {
-		SexGenderColumns <- getRanges(c(1,extractSexGenderColumns))
-		SEXGENDER[[basket]]  <- fread(cmd=paste("cut -f",SexGenderColumns,basket),header=T)
+	extractGenderColumns <- grep(paste("^f\\.",c("31"),"\\.",sep="",collapse="|"),ukb_data_columns)
+	if(length(extractGenderColumns) == 1) {
+		GenderColumns <- getRanges(c(1,extractGenderColumns))
+		GENDER[[basket]]  <- fread(cmd=paste("cut -f",GenderColumns,basket),header=T)
 	}
 }
 
 # Process sex/gender information: Female = 0; Male = 1
 # Only keep samples where sex == gender; unclear why sex might differ from gender (gender identity, bone marrow transplan, sample swap)
-SEXGENDER <- rbindlist(SEXGENDER)
-setnames(SEXGENDER,c("f.31.0.0","f.22001.0.0"),c("Sex","GeneticSex"))
-SEXGENDER[,Sex:=ifelse(Sex != GeneticSex,NA,Sex)]
-SEXGENDER <- na.omit(unique(SEXGENDER))
+SEXGENDER <- merge(rbindlist(GENDER)[!duplicated(f.eid)], sex, by = "f.eid")
+setnames(SEXGENDER,c("f.31.0.0"),c("Gender"))
+SEXGENDER[Gender != Sex, Sex := NA]
 
 females <- SEXGENDER[Sex==0,f.eid]
 males <- SEXGENDER[Sex==1,f.eid]
